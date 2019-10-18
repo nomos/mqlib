@@ -43,7 +43,7 @@ pro.isRouterExists = function (name,handler) {
     return !!this.routers[name][handler]
 };
 
-//[地址头,空帧,typeid<byte>,serverid<str>,handler<str>,msgid<int64>,code,msg]
+//[地址头,空帧,typeid<byte>,service<str>,handler<str>,msgid<int64>,code,msg]
 pro.init = function () {
     let self = this;
     //前端消息队列接口
@@ -160,7 +160,7 @@ pro.onBackEndHeartBeats = function (args) {
 };
 
 //后端注册服务
-//接收到的格式: [send from,empty,typeid,msgid,service name,handlers]
+//接收到的格式: [send from,empty,typeid,services,gameServices,handlers]
 //发送的格式: [send from,empty,msgid,code,msg]
 pro.onBackEndRegisterService = function (args) {
     logger.debug('onBackEndRegisterService',args);
@@ -194,8 +194,6 @@ pro.registerService = function (service,name,handlers) {
 };
 
 new RouterServer();
-
-
 
 
 

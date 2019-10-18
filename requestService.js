@@ -9,6 +9,8 @@ const co = require('co');
 const compose = require('koa-compose');
 
 let RequestService = function (opt) {
+    this.gameServices = {};
+    this.services = {};
     this.client = zmq.socket('req');
     this.setServiceName(opt.service,opt.id);
     this.init();
@@ -89,8 +91,9 @@ pro.replyMessage = function (msg) {
 };
 
 //注册服务名,方法名,hash值
+//TODO:这里如果两个服务器代码不一致hash也会不一致,会导致bug
 pro.registerService = function () {
-    this.client.send([protocol.createTypeBuffer(mqlib.MessageType.REGSERVICE),this.serviceName,this.handlerstrings,this.hash]);
+    this.client.send([protocol.createTypeBuffer(mqlib.MessageType.REGSERVICE),this.serviceName,this.services,this.gameServices,this.hash]);
 };
 
 //发送心跳包,心跳包包含当前服务所有方法的hash,如果hash不相等则服务需要更新注册
@@ -98,21 +101,30 @@ pro.heartbeat = function () {
     this.client.send([protocol.createTypeBuffer(mqlib.MessageType.HEART),this.hash]);
 };
 
-//注册服务方法路由
-pro.registerHandlers = function (handlers) {
+pro.register = function (route) {
+    for (let i in route.gameServices) {
+        this.gameServices[i] = route.gameServices[i];
+    }
+    for (let i in route.services) {
+        this.services[i] = route.services[i];
+    }
     this.handlerstrings = [];
-    this.handlers = {};
     let handlerMergeStr = '';
-    for (let i in handlers) {
-        let handler = handlers[i];
-        let name = handler.name;
-        let cb = handler.cb;
+    for (let i in this.gameServices) {
+        let name = i;
         this.handlerstrings.push(name);
         handlerMergeStr+=name;
-        this.handlers[name] = cb;
+    }
+    for (let i in this.services) {
+        let name = i;
+        this.handlerstrings.push(name);
+        handlerMergeStr+=name;
     }
     this.hash = crypto.md5(handlerMergeStr);
 };
+
+
+
 
 
 

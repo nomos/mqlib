@@ -85,7 +85,7 @@ pro.onReceiveReply = function (msg) {
 
 //发送消息格式 [{路由信息{}},{消息体}]
 //路由信息[]
-pro.sendRequest = async function(msgtype,serverid,handler,msg,cb) {
+pro.sendRequest = async function(msgtype,service,handler,msg,cb) {
     if (!this.received) {
         logger.error('命令未返回');
         throw new Error('Worker命令未返回');
@@ -96,22 +96,22 @@ pro.sendRequest = async function(msgtype,serverid,handler,msg,cb) {
             return;
         }
         if (this.msg&&this.msg.cb) {
-            this.msg.cb(this.msg.serverid+':'+this.msg.handler+':'+this.msg.msg+':timeout');
+            this.msg.cb(this.msg.service+':'+this.msg.handler+':'+this.msg.msg+':timeout');
         }
         this.reset();
     }.bind(this),this.pool.timeoutTime);
     let id = oid();
     if (this.connected) {
-        this.client.send([msgtype,serverid,handler,id,msg]);
+        this.client.send([msgtype,service,handler,id,msg]);
     } else {
-        this.setMessage(msgtype,serverid,handler,id,msg,cb);
+        this.setMessage(msgtype,service,handler,id,msg,cb);
     }
 };
 
-pro.setMessage = function (msgtype,serverid,handler,id,msg,cb) {
+pro.setMessage = function (msgtype,service,handler,id,msg,cb) {
     this.msg = {
         msgtype:msgtype,
-        serverid:serverid,
+        service:service,
         handler:handler,
         id:id,
         msg:msg,
